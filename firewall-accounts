@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+#
+import pexpect
+import sys
+state=sys.argv[0]
+args=(len(sys.argv))
+fw='10.2.0.1'
+
+#
+class Connection :
+    def __init__(self,address,users):
+        self=pexpect.spawn('ssh',['admin@{0}'.format(address)])
+        self.logfile = sys.stdout
+        self.expect('Password:')
+        self.sendline('Ast0nish!n3tw0rk')
+        self.expect('admin@C0EAE40AF3E0>')
+        self.sendline('config terminal')
+        self.expect('#')
+        self.sendline('user local-users')
+        self.expect('#')
+        for user in users:
+            self.sendline('user {0} password 1281684242ASta'.format(user))
+            self.expect('#')
+        self.sendline('commit')
+        self.expect('#')
+        self.sendline('exit')
+        self.expect('#')
+        self.sendline('exit')
+        self.expect('admin@C0EAE40AF3E0>')
+        self.sendline('exit')
+
+#
+if __name__== '__main__' :
+    users=['camaral','clachance','dhladick','dweedon','jbissaro','jhandren','jwood','kvetere','notjake','pcraig','rkanner']
+#    for user in users:
+#        firewall=Connection(fw,user)
+    firewall=Connection(fw,users)

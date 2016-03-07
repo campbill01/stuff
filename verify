@@ -1,0 +1,18 @@
+verify() {
+    local status=$?
+    if [ $status -ne 0 ]; then
+        curl --silent --data "{\"msg\":\"Deploy to ${ENVLOW} auto scale stack ${ENVNUM} dot  ${HOSTNUM} failed...rebooting...\"}" http://184.180.15.122:4567/speak > /dev/null
+        curl --silent --data "room_id=600303&notify=1&from=Deploy Alerts&message=${ENVLOW} autoscale stack ${ENVNUM} . ${HOSTNUM} failed to deploy, rebooting..." https://astonishdev.hipchat.com/v1/rooms/message?auth_token=57d22211d5477cb3673c78347bd5e3 > /dev/null
+        sudo reboot
+    fi
+    return $status
+}
+
+verifyOne() {
+    local status=$?
+    if [ $status -ne 1 ]; then
+        exit 1
+    fi
+    return 0
+}
+

@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+#
+import pexpect
+import sys
+state=sys.argv[1]
+args=(len(sys.argv))
+switch='10.2.0.2'
+wap='10.2.0.3'
+#
+class Connection :
+	def __init__(self,address,port,state):
+		self=pexpect.spawn('ssh',['admin@{0}'.format(address)])
+		self.logfile = sys.stdout
+        	self.expect('password:')
+        	self.sendline('REDACTED')
+        	self.expect('>')
+        	self.sendline('en')
+        	self.expect('#')
+        	self.sendline('config t')
+        	self.expect('config')
+        	self.sendline('interface switchport {0}'.format(port))
+        	self.expect('config-swx {0}'.format(port))
+        	if state=='on':
+                	state='no shutdown'
+        	elif state=='off' :
+                	state='shutdown'
+        	else:
+                	self.sendline('exit')
+        	self.sendline(state)
+ 		self.expect('config-swx')
+		self.sendline('exit')
+
+#
+if __name__== '__main__' :
+	if (args <2):
+		print ('Expected an argument: on/off')
+		exit()
+	else:
+		lan=Connection(switch,'0/41',state)
+		wireless=Connection(wap,'0/5',state)
+
