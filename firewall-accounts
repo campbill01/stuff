@@ -12,8 +12,8 @@ class Connection :
         self=pexpect.spawn('ssh',['admin@{0}'.format(address)])
         self.logfile = sys.stdout
         self.expect('Password:')
-        self.sendline('Ast0nish!n3tw0rk')
-        self.expect('admin@C0EAE40AF3E0>')
+        self.sendline('')
+        self.expect('')
         self.sendline('config terminal')
         self.expect('#')
         self.sendline('user local-users')
@@ -31,7 +31,7 @@ class Connection :
 
 #
 if __name__== '__main__' :
-    users=['camaral','clachance','dhladick','dweedon','jbissaro','jhandren','jwood','kvetere','notjake','pcraig','rkanner']
+    users=['user1','user2']
 #    for user in users:
 #        firewall=Connection(fw,user)
     firewall=Connection(fw,users)

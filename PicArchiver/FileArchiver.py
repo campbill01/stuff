@@ -1,5 +1,5 @@
 import Connection
-import PicFile
+from PicFile import PicFile
 import os.path
 
 #default settings
@@ -13,6 +13,16 @@ dest_dir='e:\\test\\'
 def setup():
     #not implemented
     pass
+
+# open hashfile if it exists, create if it doesn't, or close if requested
+def manage_hashfile(filename,action=open,hashfile=None):
+    if action == "close":
+        hashfile.close()
+        return
+    append_write = 'a+'
+    hashfile = open(filename, append_write)
+    #hashfile.seek(0, 2)
+    return hashfile
 
 # create hash file
 def create_hashes(list):
@@ -33,35 +43,35 @@ def list_files(connection):
     # should theoretically be blind to the actual implementation
     return connection.list()
 
-def upload_files(list):
+def upload_files(list,hashfile):
     for file in list:
-        destination.put(file.get_filename())
+        name = file.get_filename()
+        hash = file.get_hash()
+        found = False
+        for line in hashfile:
+            if hash in line:
+                found=True
+                break
+        if not found:
+            destination.put(name)
+            add_hashes(name,hashfile,hash)
 
-def add_hashfile(pics):
-    #create if not exist
-    #or seek end of file
-     if os.path.isfile(hash_file):
-        open(hash_file, "rb") as f:
-        f.seek(0,2)
-     for file in pics:
-         hash=file.get_hash()
-         filename=file.get_filename()
-         f.write(hash + ":" + filename)
-
+def add_hashes(pic,hashfile,hash):
+    line=hash + " " + pic + "\n"
+    hashfile.write(line)
 
 
 
 if __name__ == "__main__":
-    # make connections
+    hashfile = manage_hashfile(hash_file,'open')
     source = Connection.local(source_dir)
     destination = Connection.local(dest_dir)
     # list files
     filenames = list_files(source)
     # select files
-    # initially will be all files
     files = create_hashes(filenames)
-     # copy files
-    upload_files(files)
+    # copy files
+    upload_files(files,hashfile)
     # update hash file
-    add_hashes(files)
+    manage_hashfile(hash_file,'close',hashfile)
 

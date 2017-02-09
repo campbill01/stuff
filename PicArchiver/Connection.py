@@ -17,13 +17,17 @@ class local(Connection):
         # support only top level directories at first
         self.directory = where
 
+    def __str__(self):
+        return self.directory
+
+
     def list(self):
-        path=self.directory + "*.JPEG"
+        path=self.directory + "*.JPG"
         return glob.glob(path)
 
-    def put(self,files):
-        for file in files:
-            shutil.copy(file,self.directory)
+    def put(self,file):
+       # print file,self.directory
+        shutil.copy(file,self.directory)
 
 class s3(Connection):
     def __init__(self,where):
