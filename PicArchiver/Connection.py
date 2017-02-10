@@ -1,5 +1,7 @@
 import glob
 import shutil
+import re
+from os import listdir
 
 class Connection:
     # will need list, put
@@ -20,10 +22,21 @@ class local(Connection):
     def __str__(self):
         return self.directory
 
+    def to_string(self):
+        return self.directory
+
 
     def list(self):
-        path=self.directory + "*.JPG"
-        return glob.glob(path)
+        files = []
+        for file in listdir(self.directory):
+            if re.match('.*\.(avi|jpg|mov|mod)',file,re.IGNORECASE):
+                filepath=self.directory + "/" + file
+                files.append(filepath)
+        return files
+        #path=self.directory + "*.JPG"
+        #return glob.glob(path)
+
+
 
     def put(self,file):
        # print file,self.directory

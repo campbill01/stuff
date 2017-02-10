@@ -1,14 +1,13 @@
 import Connection
 from PicFile import PicFile
-import os.path
-
+import os
 #default settings
 #hash file
 hash_file='.\hashfile'
 # source location
-source_dir='d:\\test\\'
+source_dir='d:\\test'
 # destination
-dest_dir='e:\\test\\'
+dest_dir='e:\\'
 # first run ?
 def setup():
     #not implemented
@@ -49,7 +48,8 @@ def upload_files(list,hashfile):
         hash = file.get_hash()
         found = False
         for line in hashfile:
-            if hash in line:
+           # print line.split()[0]
+            if hash == line.split()[0]:
                 found=True
                 break
         if not found:
@@ -64,14 +64,24 @@ def add_hashes(pic,hashfile,hash):
 
 if __name__ == "__main__":
     hashfile = manage_hashfile(hash_file,'open')
-    source = Connection.local(source_dir)
-    destination = Connection.local(dest_dir)
+    # this needs to be a base dir instead of an absolute source
+    # perhaps traverse directories and get list and then call metchod/functions on each ?
+    #  [x[0] for x in os.walk('e:\\camera')]
+    # or
+    # d='.'
+    # filter(lambda x: os.path.isdir(os.path.join(d, x)), os.listdir(d))
+    source_dirs = [x[0] for x in os.walk(source_dir)]
+    for dir in source_dirs:
+        source = Connection.local(dir)
+        destination = Connection.local(dest_dir + dir[2:])
+        if not os.path.exists(destination.to_string()):
+            os.makedirs(destination.to_string())
     # list files
-    filenames = list_files(source)
+        filenames = list_files(source)
     # select files
-    files = create_hashes(filenames)
+        files = create_hashes(filenames)
     # copy files
-    upload_files(files,hashfile)
+        upload_files(files,hashfile)
     # update hash file
     manage_hashfile(hash_file,'close',hashfile)
 
