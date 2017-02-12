@@ -43,9 +43,8 @@ def upload_files(list,hashfile):
         found = False
         hashfile.seek(0, 0)
         for line in hashfile:
-           # print line.split()[0]
-            pos=hashfile.tell()
-            print ("Current Position: %d" % (pos))
+            #pos=hashfile.tell()
+            #print ("Current Position: %d" % (pos))
             if hash == line.split()[0]:
                 found=True
                 break
@@ -67,9 +66,11 @@ if __name__ == "__main__":
     s3 = Connection.s3(bucket)
     for dir in source_dirs:
         source = Connection.local(dir)
-        destination = Connection.local(dest_dir + dir[2:])
-        if not os.path.exists(destination.to_string()):
-            os.makedirs(destination.to_string())
+        #destination = Connection.local(dest_dir + dir[2:])
+        destination = Connection.s3(bucket)
+        destination.get_dir()
+        if not destination.get_dir():
+            destination.set_dir()
     # list files
         filenames = list_files(source)
     # select files
