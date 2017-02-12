@@ -1,17 +1,17 @@
+from ConfigParser import SafeConfigParser
 import Connection
 from PicFile import PicFile
 import os
-#default settings
-#hash file
-hash_file='.\hashfile'
-# source location
-source_dir='d:\\test'
-# destination
-dest_dir='e:\\'
-# first run ?
-def setup():
-    #not implemented
-    pass
+
+def load_config():
+    # loads settings from ini file
+    config = SafeConfigParser()
+    config.read('config.ini')
+    hash_file = config.get('main','HASH_FILE')
+    source_dir = config.get('main','SOURCE_DIR')
+    dest_dir = config.get('main','DEST_DIR')
+    bucket = config.get('main', 'BUCKET')
+    return hash_file,source_dir,dest_dir,bucket
 
 # open hashfile if it exists, create if it doesn't, or close if requested
 def manage_hashfile(filename,action=open,hashfile=None):
@@ -20,7 +20,6 @@ def manage_hashfile(filename,action=open,hashfile=None):
         return
     append_write = 'a+'
     hashfile = open(filename, append_write)
-    #hashfile.seek(0, 2)
     return hashfile
 
 # create hash file
@@ -32,11 +31,6 @@ def create_hashes(list):
         obj_list.append(file_obj)
     return obj_list
 
-def get_settings():
-    # read settings from file (configparser)
-    # not implemented
-    pass
-
 def list_files(connection):
     # should take a connection and use it's methods to access/enumerate files
     # should theoretically be blind to the actual implementation
@@ -47,8 +41,11 @@ def upload_files(list,hashfile):
         name = file.get_filename()
         hash = file.get_hash()
         found = False
+        hashfile.seek(0, 0)
         for line in hashfile:
            # print line.split()[0]
+            pos=hashfile.tell()
+            print ("Current Position: %d" % (pos))
             if hash == line.split()[0]:
                 found=True
                 break
@@ -57,20 +54,17 @@ def upload_files(list,hashfile):
             add_hashes(name,hashfile,hash)
 
 def add_hashes(pic,hashfile,hash):
+    hashfile.seek(0, 2)
     line=hash + " " + pic + "\n"
     hashfile.write(line)
 
 
 
 if __name__ == "__main__":
+    hash_file,source_dir,dest_dir,bucket=load_config()
     hashfile = manage_hashfile(hash_file,'open')
-    # this needs to be a base dir instead of an absolute source
-    # perhaps traverse directories and get list and then call metchod/functions on each ?
-    #  [x[0] for x in os.walk('e:\\camera')]
-    # or
-    # d='.'
-    # filter(lambda x: os.path.isdir(os.path.join(d, x)), os.listdir(d))
     source_dirs = [x[0] for x in os.walk(source_dir)]
+    s3 = Connection.s3(bucket)
     for dir in source_dirs:
         source = Connection.local(dir)
         destination = Connection.local(dest_dir + dir[2:])
@@ -82,6 +76,5 @@ if __name__ == "__main__":
         files = create_hashes(filenames)
     # copy files
         upload_files(files,hashfile)
-    # update hash file
     manage_hashfile(hash_file,'close',hashfile)
 
