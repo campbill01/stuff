@@ -4,7 +4,6 @@ import shutil
 from ConfigParser import SafeConfigParser
 
 import boto3
-import botocore
 
 
 class Connection:
@@ -12,7 +11,7 @@ class Connection:
     def __init__(self):
         pass
 
-    def get_dir(self):
+    def get_dir(self,dir):
         pass
 
     def set_dir(self):
@@ -25,9 +24,13 @@ class Connection:
         pass
 
 class local(Connection):
-    def __init__(self, where):
-        # support only top level directories at first
-        self.directory = where
+    def __init__(self,dir=None):
+        if dir == None:
+            config = SafeConfigParser()
+            config.read('config.ini')
+            self.directory  = config.get('main', 'DEST_DIR')
+        else:
+            self.directory = dir
 
     def __str__(self):
         return self.directory
@@ -35,13 +38,16 @@ class local(Connection):
     def to_string(self):
         return self.directory
 
-    def get_dir(self):
-        if not os.path.exists(self.directory):
+    def get_dir(self,dir):
+        if not os.path.exists(self.directory + '/' + dir):
             return False
         return True
 
-    def set_dir(self):
-        os.makedirs(self.directory)
+    def set_dir(self,dir):
+        self.directory = dir
+
+    def make_dirs(self,dir):
+        os.makedirs(self.directory + '/' + dir)
 
     def list(self):
         files = []
@@ -52,62 +58,37 @@ class local(Connection):
         return files
 
     def put(self,file):
-       # print file,self.directory
-        shutil.copy(file,self.directory)
+       prefix = file.replace('/','\\')
+       shutil.copyfile(file, self.directory + '\\' + prefix[3:])
 
 class s3(Connection):
-    def __init__(self,where):
+    def __init__(self,dir=None):
         # sets bucket info,credentials
         config = SafeConfigParser()
         config.read('config.ini')
-        path =  where.find('/')
-        if path == -1:
-            self.bucket = where
-            self.dir = '/'
-        else:
-            bucket=where[0:path]
-            self.dir = where[path:]
-        self.destination = self.bucket + self.dir
         aws_region = config.get('main', 'REGION')
+        self.bucket = config.get('main','BUCKET')
         self.client = boto3.client('s3', aws_access_key_id = config.get('main', 'ACCESS_KEY'),
                               aws_secret_access_key=config.get('main', 'SECRET_KEY'),
                               )
 
     def __str__(self):
-        return self.destination
+        return self.bucket
 
     def to_string(self):
-        return self.destination
+        return self.bucket
 
     def list(self):
         # may require pagenation
         pass
 
-    def put(self,file):
-        #with open (file, 'rb') as data:
-            #this will probably add bucket to path of remote file
-        print file
-        if self.bucket in file:
-            upfile = file[len(self.bucket):]
-            #print file
+    def put(self,file,dest=None):
+        up_file = file
         if ':' in file:
-            upfile = file[2:]
-        self.client.upload_file(file, self.bucket, upfile)
+            up_file = file[3:]
+        up_file = up_file.replace('\\','/')
+        self.client.upload_file(file, self.bucket, up_file)
 
-    def get_dir(self):
-        try:
-            key=self.client.head_object(Bucket=self.bucket,Key=self.destination)
-        except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] == "404":
-                return False
-            else:
-                raise
-        else:
-            return True
-
-    def set_dir(self):
-        self.client.put_object(
-            Bucket=self.bucket,
-            Body='',
-            Key=self.destination +'/'
-        )
+    def make_dirs(self,dirs):
+        # s3 creates dir automatically if / is used
+        return True
