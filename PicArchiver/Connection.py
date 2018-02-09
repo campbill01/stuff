@@ -1,7 +1,7 @@
 import os
 import re
 import shutil
-from ConfigParser import SafeConfigParser
+from configparser import ConfigParser
 
 import boto3
 
@@ -23,12 +23,13 @@ class Connection:
     def put(self):
         pass
 
+
 class local(Connection):
     def __init__(self,dir=None):
         if dir == None:
-            config = SafeConfigParser()
+            config = ConfigParser()
             config.read('config.ini')
-            self.directory  = config.get('main', 'DEST_DIR')
+            self.directory = config.get('main', 'DEST_DIR')
         else:
             self.directory = dir
 
@@ -61,16 +62,17 @@ class local(Connection):
        prefix = file.replace('/','\\')
        shutil.copyfile(file, self.directory + '\\' + prefix[3:])
 
+
 class s3(Connection):
-    def __init__(self,dir=None):
+    def __init__(self, dir=None):
         # sets bucket info,credentials
-        config = SafeConfigParser()
+        config = ConfigParser()
         config.read('config.ini')
         aws_region = config.get('main', 'REGION')
         self.bucket = config.get('main','BUCKET')
-        self.client = boto3.client('s3', aws_access_key_id = config.get('main', 'ACCESS_KEY'),
-                              aws_secret_access_key=config.get('main', 'SECRET_KEY'),
-                              )
+        self.client = boto3.client('s3', aws_access_key_id=config.get('main', 'ACCESS_KEY'),
+                                   aws_secret_access_key=config.get('main', 'SECRET_KEY'),
+                                   )
 
     def __str__(self):
         return self.bucket

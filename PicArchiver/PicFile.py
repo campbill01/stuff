@@ -1,10 +1,11 @@
 from hashlib import md5
 
+
 class PicFile:
 
     def __init__(self, file_name):
         self.file_name = file_name
-        hash_value=0
+        self.hash_value = 0
 
     def set_hash(self):
         hash = md5()
