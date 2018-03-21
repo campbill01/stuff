@@ -1,5 +1,7 @@
 *.gem
 *.rbc
+*.pyc
+__pycache__
 /.config
 /coverage/
 /InstalledFiles
